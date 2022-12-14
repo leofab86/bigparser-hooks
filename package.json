@@ -1,0 +1,22 @@
+{
+  "name": "bigparser-hooks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "@types/react": "^18.0.0",
+    "bigparser": "^0.6.164",
+    "react": "^18.2.0",
+    "typescript": "^4.2.4"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:dev": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC"
+}
