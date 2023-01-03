@@ -1,37 +1,45 @@
-import {search} from 'bigparser'
-import {useEffect, useState} from "react";
+import * as bp from 'bigparser'
+import useSWR, { mutate } from 'swr'
 
 type Config = {
   authId?: string,
   gridId?: string
 }
 
-type Parameters = {
+type UseSearchParams<DataModel> = {
+  query?: bp.QueryObject<DataModel>['query']
   config?: Config
 }
 
-type State<DataModel> = Pick<
-  Awaited<ReturnType<typeof search<DataModel>>>,
-  'data' | 'error'
->
+export const useSearch = <DataModel>(params?: UseSearchParams<DataModel>) => {
+  const gridId = (params?.config?.gridId || process.env.REACT_APP_BP_GRID_ID) as string
+  const authId = params?.config?.authId || process.env.REACT_APP_BP_AUTH
 
+  const { data, error, isLoading } = useSWR<bp.APIResponse>(gridId, () => {
+    return bp.search<DataModel>(
+      { query: params?.query || {} },
+      gridId,
+      { authId })
+  })
 
-export const useSearch = <DataModel>(params?: Parameters) => {
-  const [state, setState] = useState<State<DataModel>>({ data: undefined, error: undefined })
+  return { data, error, isLoading }
+}
 
-  useEffect(() => {
-    const async = async () => {
-      const gridId = (params?.config?.gridId || process.env.REACT_APP_BP_GRID_ID) as string
+type UseAddColumnParams = {
+  config?: Config
+}
 
-      const resp = await search<DataModel>({
-        query: {},
-      }, gridId, {
-        authId: params?.config?.authId || process.env.REACT_APP_BP_AUTH
-      })
-      setState(resp)
-    }
-    async()
-  }, [])
+export const useAddColumn = <DataModel>(params?: UseAddColumnParams) => {
+  const gridId = (params?.config?.gridId || process.env.REACT_APP_BP_GRID_ID) as string
+  const authId = params?.config?.authId || process.env.REACT_APP_BP_AUTH
 
-  return { data: state.data, error: state.error }
+  return async function addColumn(addColumnObj: bp.AddColumnObject<DataModel>) {
+    const resp = await bp.addColumn<DataModel>(
+      addColumnObj,
+      gridId,
+      { authId }
+    )
+    mutate(gridId)
+    return resp
+  }
 }
